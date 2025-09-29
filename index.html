@@ -1,57 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Weekly Schedule • Sept 28 – Oct 4, 2025 (ET)</title>
 <style>
   :root{
     --bg:#ffffff; --grid:#e6e6e6; --text:#111; --header:#000; --header-text:#fff;
     --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE;
     --house:#7ED321; --medical:#F5A623;
-    --slotH:44px; /* row height */
+    --slotH:44px; /* height of one hour row */
   }
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  html,body{margin:0;background:var(--bg);color:var(--text);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-  header{padding:16px 20px;background:#fff;position:sticky;top:0;z-index:3;border-bottom:1px solid var(--grid)}
-  h1{margin:0;font-size:clamp(18px,3vw,28px);}
-  .wrapper{max-width:1200px;margin:20px auto;padding:0 16px}
-  .legend{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 20px}
-  .legend span{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff}
-  .swatch{width:14px;height:14px;border-radius:3px;display:inline-block}
 
+  header{padding:16px 20px;background:#fff;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
+  h1{margin:0;font-size:clamp(18px,3vw,28px)}
+
+  .wrapper{max-width:1200px;margin:18px auto;padding:0 16px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px}
+  .legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:13px}
+  .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+
+  /* Board: left time column + 7 day columns */
   .board{
     display:grid;
-    grid-template-columns:70px repeat(7,1fr);
+    grid-template-columns: 70px repeat(7, 1fr);
+    align-items:start;
     border:1px solid var(--grid);
   }
+
+  /* sticky headers */
   .timeHead,.dayHead{
-    background:var(--header);color:var(--header-text);
-    text-align:center;padding:8px 4px;position:sticky;top:65px;z-index:4;
+    background:var(--header); color:var(--header-text);
+    text-align:center; padding:8px 4px;
+    position:sticky; top:65px; z-index:4;
+    border-right:1px solid #222;
   }
+
+  /* Time column: 06:00–22:00 = 17 rows */
   .timeCol{
-    display:grid;grid-template-rows:repeat(17,var(--slotH));
-    background:#fafafa;position:sticky;left:0;z-index:2;
+    display:grid; grid-template-rows: repeat(17, var(--slotH));
+    position:sticky; left:0; z-index:3; background:#fafafa; border-right:1px solid var(--grid);
   }
-  .tcell{display:flex;align-items:center;justify-content:center;
-    border-top:1px solid var(--grid);color:#666;font-size:12px}
+  .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
 
+  /* Day column: also 17 rows so events can span */
   .dayCol{
-    display:grid;grid-template-rows:repeat(17,var(--slotH));
-    border-left:1px solid var(--grid);position:relative;
+    display:grid; grid-template-rows: repeat(17, var(--slotH));
+    position:relative; border-right:1px solid var(--grid); background:#fff;
   }
-  .slot{border-top:1px solid var(--grid)}
+  .slot{ border-top:1px solid var(--grid); } /* faint hour lines */
 
+  /* Event blocks */
   .event{
-    margin:2px 4px;padding:6px 8px;border-radius:6px;color:#fff;font-size:12px;
-    line-height:1.25;box-shadow:0 1px 2px rgba(0,0,0,.1);display:flex;align-items:center;
+    margin:2px 6px; padding:8px 10px; border-radius:8px; color:#fff; font-size:12px; line-height:1.25;
+    box-shadow:0 1px 2px rgba(0,0,0,.08); display:flex; align-items:center;
   }
   .work{background:var(--work)}
   .school{background:var(--school)}
-  .exercise{background:var(--exercise);color:#063}
+  .exercise{background:var(--exercise); color:#063}
   .selfcare{background:var(--selfcare)}
-  .house{background:var(--house);color:#123}
+  .house{background:var(--house); color:#123}
   .medical{background:var(--medical)}
+
+  @media (max-width:900px){
+    :root{ --slotH: 50px } /* taller rows for mobile */
+    .event{font-size:13px}
+  }
+  @media print{
+    header{position:static}
+    .dayHead{top:auto}
+    .event{box-shadow:none}
+  }
 </style>
 </head>
 <body>
@@ -61,62 +83,112 @@
 
 <div class="wrapper">
   <div class="legend">
-    <span><i class="swatch" style="background:var(--work)"></i> Work</span>
-    <span><i class="swatch" style="background:var(--school)"></i> School</span>
-    <span><i class="swatch" style="background:var(--exercise)"></i> Exercise</span>
-    <span><i class="swatch" style="background:var(--selfcare)"></i> Self-care</span>
-    <span><i class="swatch" style="background:var(--house)"></i> Household</span>
-    <span><i class="swatch" style="background:var(--medical)"></i> Medical</span>
+    <span><i class="sw" style="background:var(--work)"></i> Work</span>
+    <span><i class="sw" style="background:var(--school)"></i> School</span>
+    <span><i class="sw" style="background:var(--exercise)"></i> Exercise</span>
+    <span><i class="sw" style="background:var(--selfcare)"></i> Self-care & Business</span>
+    <span><i class="sw" style="background:var(--house)"></i> Household</span>
+    <span><i class="sw" style="background:var(--medical)"></i> Medical</span>
   </div>
 
   <div id="board" class="board"></div>
 </div>
 
 <script>
-const hours = Array.from({length:17},(_,i)=>i+6); // 6–22
+/* ===== GRID CONFIG ===== */
+const hours = Array.from({length:17},(_,i)=> i + 6); // rows represent 06..22
 const days = [
-  {label:'Sunday',key:'sun'},
-  {label:'Monday',key:'mon'},
-  {label:'Tuesday',key:'tue'},
-  {label:'Wednesday',key:'wed'},
-  {label:'Thursday',key:'thu'},
-  {label:'Friday',key:'fri'},
-  {label:'Saturday',key:'sat'},
+  {label:'Sunday', key:'sun'},
+  {label:'Monday', key:'mon'},
+  {label:'Tuesday', key:'tue'},
+  {label:'Wednesday', key:'wed'},
+  {label:'Thursday', key:'thu'},
+  {label:'Friday', key:'fri'},
+  {label:'Saturday', key:'sat'},
 ];
 
-// schedule: events span rows (start→end)
-const schedule = {
-  mon:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
-  tue:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
-  thu:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
-  fri:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
+/* ===== SCHEDULE =====
+   Each event is ONE block that spans start→end.
+   Times are integers in 24h. Example: 9..20 = 9 AM–8 PM. */
+const S = {
+  sun: [
+    {start:7, end:8,  text:'AM routine: shower/teeth/breakfast + 10–15m yoga', cat:'exercise'},
+    {start:8, end:10, text:'Submit papers + discussion responses', cat:'school'},
+    {start:12, end:14, text:'Groceries + meal plan', cat:'house'},
+    {start:14, end:18, text:'Product prep: oils/soaps/candles/incense', cat:'selfcare'},
+    {start:18, end:20, text:'Photos/content + website', cat:'selfcare'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+  ],
+  mon: [
+    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
+    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+  ],
+  tue: [
+    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
+    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:21, end:22, text:'Laundry rotation + fold', cat:'house'},
+  ],
+  wed: [
+    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
+    {start:8, end:10, text:'Light content/admin + tidy', cat:'selfcare'},
+    {start:10, end:11, text:'Hair trim + eyebrows', cat:'selfcare'},
+    {start:14, end:15, text:'Therapy (virtual) 2 PM', cat:'medical'},
+    {start:16, end:17, text:'Dr. Yu follow-up 4 PM', cat:'medical'},
+    {start:19, end:20, text:'Gentle yoga (20m) + meditation (10m)', cat:'exercise'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+  ],
+  thu: [
+    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
+    {start:8, end:9,  text:'Post MKG 580 discussion', cat:'school'},
+    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+  ],
+  fri: [
+    {start:7, end:8,  text:'AM routine + 15m yoga', cat:'exercise'},
+    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:21, end:22, text:'Laundry rotation + fold', cat:'house'},
+  ],
+  sat: [
+    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
+    {start:9, end:11, text:'Deep clean: sweep/mop whole house', cat:'house'},
+    {start:12, end:14, text:'Errands & supply run', cat:'house'},
+    {start:14, end:18, text:'Product prep & budgeting', cat:'selfcare'},
+    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+  ],
 };
 
-const board=document.getElementById('board');
+/* ===== RENDER (row-span blocks) ===== */
+const board = document.getElementById('board');
 
-// header row
+/* header row */
 board.appendChild(div('timeHead','Hour'));
-days.forEach(d=>board.appendChild(div('dayHead',d.label)));
+days.forEach(d => board.appendChild(div('dayHead', d.label)));
 
-// time col
-const tc=div('timeCol');
-hours.forEach(h=>tc.appendChild(div('tcell',pad(h)+':00')));
-board.appendChild(tc);
+/* time column */
+const timeCol = div('timeCol');
+hours.forEach(h => timeCol.appendChild(div('tcell', pad(h)+':00')));
+board.appendChild(timeCol);
 
-// day cols
-days.forEach(d=>{
-  const col=div('dayCol');
-  hours.forEach(()=>col.appendChild(div('slot','')));
-  (schedule[d.key]||[]).forEach(ev=>{
-    const el=div('event '+ev.cat,ev.text);
-    el.style.gridRow=`${ev.start-5} / ${ev.end-5}`; // row span
+/* day columns: draw faint hour lines + add events with gridRow spans */
+days.forEach(d => {
+  const col = div('dayCol');
+  hours.forEach(() => col.appendChild(div('slot','')));   // hour lines
+  (S[d.key]||[]).forEach(ev => {
+    const el = div('event ' + ev.cat, ev.text);
+    // rows numbered 1..17 correspond to 06..22 => startRow = (start-6)+1
+    const startRow = (ev.start - 6) + 1;
+    const endRow   = (ev.end   - 6) + 1;
+    el.style.gridRow = `${startRow} / ${endRow}`;
     col.appendChild(el);
   });
   board.appendChild(col);
 });
 
-function div(cls,txt=''){const e=document.createElement('div');e.className=cls;e.textContent=txt;return e;}
-function pad(n){return String(n).padStart(2,'0');}
+function div(cls, text=''){ const e = document.createElement('div'); e.className = cls; e.textContent = text; return e; }
+function pad(n){ return String(n).padStart(2,'0'); }
 </script>
 </body>
 </html>
