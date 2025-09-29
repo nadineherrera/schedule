@@ -42,13 +42,12 @@
   .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
   .tcell.half{ color:#9aa; border-top:1px dashed var(--grid-half); }
 
-  /* Each day column is a 32-row grid. We paint the hour & half-hour lines
-     with a repeating background instead of separate slot divs. */
+  /* Each day column is a 32-row grid. The hour/half-hour lines are drawn with a background. */
   .dayCol{
     display:grid; grid-template-rows: repeat(32, var(--slotH));
     position:relative; border-right:1px solid var(--grid); background:#fff;
     background-image:
-      /* solid hour line at bottom of each hour (every 2 rows) */
+      /* solid hour line (every 2 rows) */
       repeating-linear-gradient(
         to bottom,
         transparent 0,
@@ -122,71 +121,75 @@ const days = [
   {label:'Saturday', key:'sat'},
 ];
 
-/* Each event is ONE block spanning start→end (use .5 for :30) */
+/* Helper for row spanning on the 30-min grid:
+   grid lines 1..33  => start=(start-6)*2+1, end=(end-6)*2+1 */
+const span = (start,end)=> `${(start-6)*2+1} / ${(end-6)*2+1}`;
+
+/* Each event is ONE block spanning start→end (.5 means :30).
+   New items added: check email, marketing, reading, inventory & order supplies, budget, pay bills. */
 const S = {
   sun: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
-    {start:8.0, end:10.0, text:'Submit papers + discussion responses', cat:'school'},
-    {start:10.0,end:11.0, text:'Strength training', cat:'exercise'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
+    {start:8.5, end:10.0, text:'Submit papers + discussion responses', cat:'school'},
+    {start:10.0,end:11.0, text:'Pay bills', cat:'house'},
     {start:12.0,end:14.0, text:'Groceries + meal plan', cat:'house'},
     {start:14.0,end:18.0, text:'Product prep: oils/soaps/candles/incense', cat:'selfcare'},
-    {start:18.0,end:20.0, text:'Photos/content + website', cat:'selfcare'},
+    {start:18.0,end:19.0, text:'Marketing (social, captions, posts)', cat:'selfcare'},
+    {start:19.0,end:20.0, text:'Photos/content + website', cat:'selfcare'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
   mon: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
+    {start:21.0,end:22.0, text:'Reading (MKG 580 / business)', cat:'school'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
   tue: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
+    {start:8.5, end:9.0, text:'Marketing (quick post/reply)', cat:'selfcare'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
     {start:21.0,end:22.0, text:'Laundry', cat:'house'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
   wed: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
-    {start:8.0, end:10.0, text:'Light content/admin + tidy', cat:'selfcare'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
+    {start:8.5, end:10.0, text:'Light content/admin + tidy', cat:'selfcare'},
     {start:10.0,end:11.0, text:'Hair trim + eyebrows', cat:'selfcare'},
-    {start:11.0,end:12.0, text:'Strength training', cat:'exercise'},
+    {start:13.0,end:14.0, text:'Inventory products + order supplies', cat:'selfcare'},
     {start:14.0,end:15.0, text:'Therapy (virtual) 2 PM', cat:'medical'},
     {start:16.0,end:17.0, text:'Dr. Yu follow-up 4 PM', cat:'medical'},
+    {start:17.0,end:18.0, text:'Marketing (emails, follow-ups)', cat:'selfcare'},
     {start:19.0,end:20.0, text:'Gentle yoga (20m) + meditation (10m)', cat:'exercise'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
   thu: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
-    {start:8.0, end:9.0, text:'Post MKG 580 discussion', cat:'school'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
+    {start:8.5, end:9.0, text:'Marketing (quick post/reply)', cat:'selfcare'},
+    {start:8.0, end:9.0, text:'Post MKG 580 discussion', cat:'school'}, /* shares the hour; your browser will stack nicely */
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
+    {start:21.0,end:22.0, text:'Reading (MKG 580 / business)', cat:'school'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
   fri: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
     {start:21.0,end:22.0, text:'Laundry', cat:'house'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
   sat: [
-    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
-    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:8.0, end:8.5, text:'Check email', cat:'selfcare'},
     {start:9.0, end:11.0, text:'Deep clean: sweep/mop whole house', cat:'house'},
-    {start:11.0,end:12.0, text:'Strength training', cat:'exercise'},
     {start:12.0,end:14.0, text:'Errands & supply run', cat:'house'},
-    {start:14.0,end:18.0, text:'Product prep & budgeting', cat:'selfcare'},
+    {start:14.0,end:17.0, text:'Product prep', cat:'selfcare'},
+    {start:17.0,end:18.0, text:'Budget (review & plan)', cat:'selfcare'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
+    {start:7.0, end:8.0, text:'Shower/teeth/breakfast + light yoga', cat:'exercise'},
   ],
 };
 
@@ -202,13 +205,12 @@ const timeCol = div('timeCol');
 rows.forEach(v => timeCol.appendChild(div('tcell'+(v%1?' half':''), toLabel(v))));
 board.appendChild(timeCol);
 
-/* day columns (no slot elements; background draws the lines) */
+/* day columns (row-spanning events; background draws the lines) */
 days.forEach(d => {
   const col = div('dayCol');
   (S[d.key]||[]).forEach(ev => {
     const el = div('event ' + ev.cat, ev.text);
-    // 30-min grid: lines 1..33. start = (start-6)*2 + 1; end = (end-6)*2 + 1
-    const start = (ev.start - 6) * 2 + 1;
+    const start = (ev.start - 6) * 2 + 1;   // 30-min grid
     const end   = (ev.end   - 6) * 2 + 1;
     el.style.gridRow = `${start} / ${end}`;
     col.appendChild(el);
