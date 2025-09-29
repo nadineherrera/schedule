@@ -6,13 +6,11 @@
 <title>Weekly Schedule • Sept 28 – Oct 4, 2025 (ET)</title>
 <style>
   :root{
-    --bg:#ffffff; --grid:#e6e6e6; --text:#111; --header:#000; --header-text:#fff;
-    --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE;
-    --house:#7ED321; --medical:#F5A623;
-    --slotH:36px; /* height of a 30-minute row; increase if you want taller */
+    --bg:#ffffff; --grid:#e6e6e6; --grid-half:#f3f3f3; --text:#111; --header:#000; --header-text:#fff;
+    --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE; --house:#7ED321; --medical:#F5A623;
+    --slotH:36px; /* height of a 30-minute row; increase for taller rows */
   }
-  html,body{margin:0;background:var(--bg);color:var(--text);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 
   header{padding:16px 20px;background:#fff;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
   h1{margin:0;font-size:clamp(18px,3vw,28px)}
@@ -22,7 +20,7 @@
   .legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:13px}
   .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
 
-  /* Board: sticky time col + 7 day columns, each with 30-min rows */
+  /* Board: sticky time col + 7 day columns */
   .board{
     display:grid;
     grid-template-columns: 78px repeat(7, 1fr);
@@ -36,22 +34,38 @@
     border-right:1px solid #222;
   }
 
+  /* Time column: 06:00→22:00 in 30-min steps (32 rows) */
   .timeCol{
-    display:grid; grid-template-rows: repeat(32, var(--slotH)); /* 06:00→22:00 = 16 hours = 32 half-hours */
+    display:grid; grid-template-rows: repeat(32, var(--slotH));
     position:sticky; left:0; z-index:3; background:#fafafa; border-right:1px solid var(--grid);
   }
-  .tcell{
-    display:flex; align-items:center; justify-content:center;
-    border-top:1px solid var(--grid); color:#666; font-size:12px;
-  }
-  .tcell.half{ color:#9aa; }
+  .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
+  .tcell.half{ color:#9aa; border-top:1px dashed var(--grid-half); }
 
+  /* Each day column is a 32-row grid. We paint the hour & half-hour lines
+     with a repeating background instead of separate slot divs. */
   .dayCol{
     display:grid; grid-template-rows: repeat(32, var(--slotH));
     position:relative; border-right:1px solid var(--grid); background:#fff;
+    background-image:
+      /* solid hour line at bottom of each hour (every 2 rows) */
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(var(--slotH) * 2 - 1px),
+        var(--grid) calc(var(--slotH) * 2 - 1px),
+        var(--grid) calc(var(--slotH) * 2)
+      ),
+      /* faint half-hour dashed line */
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(var(--slotH) - 1px),
+        var(--grid-half) calc(var(--slotH) - 1px),
+        var(--grid-half) var(--slotH)
+      );
+    background-repeat:no-repeat;
   }
-  .slot{ border-top:1px solid var(--grid); }
-  .slot.half{ border-top:1px dashed #efefef; }
 
   .event{
     margin:2px 6px; padding:8px 10px; border-radius:8px; color:#fff; font-size:12px; line-height:1.25;
@@ -94,11 +108,10 @@
 </div>
 
 <script>
-/* ===== helper ===== */
+/* ===== 30-minute rows for 06:00..22:00 ===== */
+const rows = Array.from({length:32},(_,i)=> 6 + i*0.5);
 const toLabel = (n)=> String(Math.floor(n)).padStart(2,'0') + ':' + (n%1? '30':'00');
 
-/* rows for 06:00..22:00 in 30-min steps (6.0, 6.5, ..., 21.5) => 32 rows, grid lines 1..33 */
-const rows = Array.from({length:32},(_,i)=> 6 + i*0.5);
 const days = [
   {label:'Sunday', key:'sun'},
   {label:'Monday', key:'mon'},
@@ -109,7 +122,7 @@ const days = [
   {label:'Saturday', key:'sat'},
 ];
 
-/* Each event is ONE block spanning start→end (can use .5 for :30) */
+/* Each event is ONE block spanning start→end (use .5 for :30) */
 const S = {
   sun: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
@@ -180,24 +193,21 @@ const S = {
 /* ===== render ===== */
 const board = document.getElementById('board');
 
-/* header row */
+/* header */
 board.appendChild(div('timeHead','Time'));
 days.forEach(d => board.appendChild(div('dayHead', d.label)));
 
-/* time column with :00 and :30 labels */
+/* time column */
 const timeCol = div('timeCol');
-rows.forEach((v,i) => {
-  timeCol.appendChild(div('tcell'+(v%1? ' half':''), toLabel(v)));
-});
+rows.forEach(v => timeCol.appendChild(div('tcell'+(v%1?' half':''), toLabel(v))));
 board.appendChild(timeCol);
 
-/* day columns */
+/* day columns (no slot elements; background draws the lines) */
 days.forEach(d => {
   const col = div('dayCol');
-  rows.forEach(v => col.appendChild(div('slot'+(v%1? ' half':''), '')));
   (S[d.key]||[]).forEach(ev => {
     const el = div('event ' + ev.cat, ev.text);
-    // grid lines: 1..33 ; start line = (start-6)*2 + 1 ; end line = (end-6)*2 + 1
+    // 30-min grid: lines 1..33. start = (start-6)*2 + 1; end = (end-6)*2 + 1
     const start = (ev.start - 6) * 2 + 1;
     const end   = (ev.end   - 6) * 2 + 1;
     el.style.gridRow = `${start} / ${end}`;
