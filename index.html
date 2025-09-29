@@ -8,14 +8,24 @@
   :root{
     --bg:#ffffff; --grid:#e6e6e6; --grid-half:#f3f3f3; --text:#111; --header:#000; --header-text:#fff;
     --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE; --house:#7ED321; --medical:#F5A623;
-    --learn:#00B8D9;   /* NEW: Spanish/Language */
+    --learn:#00B8D9;   /* Spanish/Language */
     --slotH:36px;      /* height of a 30-minute row */
   }
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+
+  html,body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    overflow-x:hidden; /* keep centered, prevent sideways nudges */
+  }
 
   header{padding:16px 20px;background:#fff;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
   h1{margin:0;font-size:clamp(18px,3vw,28px)}
-  .wrapper{max-width:1200px;margin:18px auto;padding:0 16px}
+
+  .wrapper{
+    max-width:1100px;                  /* tighter max so it fits cleanly */
+    width:min(1100px, 100%);           /* never overflow */
+    margin:18px auto; padding:0 16px;  /* centered */
+  }
 
   .legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px}
   .legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:13px}
@@ -27,6 +37,8 @@
     grid-template-columns: 78px repeat(7, 1fr);
     align-items:start;
     border:1px solid var(--grid);
+    width:100%;
+    box-sizing:border-box;
   }
   .timeHead,.dayHead{
     background:var(--header); color:var(--header-text);
@@ -43,12 +55,11 @@
   .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
   .tcell.half{ color:#9aa; border-top:1px dashed var(--grid-half); }
 
-  /* Each day column is a 32-row grid (hour/half-hour lines via background). */
+  /* Each day column is a 32-row grid. Hour & half-hour lines via background. */
   .dayCol{
     display:grid; grid-template-rows: repeat(32, var(--slotH));
     position:relative; border-right:1px solid var(--grid); background:#fff;
     background-image:
-      /* solid hour line (every 2 rows) */
       repeating-linear-gradient(
         to bottom,
         transparent 0,
@@ -56,7 +67,6 @@
         var(--grid) calc(var(--slotH) * 2 - 1px),
         var(--grid) calc(var(--slotH) * 2)
       ),
-      /* faint half-hour dashed line */
       repeating-linear-gradient(
         to bottom,
         transparent 0,
@@ -71,8 +81,8 @@
     margin:2px 6px; padding:8px 10px; border-radius:8px; color:#fff; font-size:12px; line-height:1.25;
     box-shadow:0 1px 2px rgba(0,0,0,.08); display:flex; align-items:center;
   }
-  .event.half{ height: calc(var(--slotH)/2 - 6px); } /* NEW: half-height pill for 15m */
-  .event.at-bottom{ align-self: end; }               /* NEW: anchor to bottom of the 30m row */
+  .event.half{ height: calc(var(--slotH)/2 - 6px); } /* 15-min pill inside the 30-min row */
+  .event.at-bottom{ align-self: end; }               /* sits at bottom of that 30-min row */
 
   .work{background:var(--work)}
   .school{background:var(--school)}
@@ -80,8 +90,8 @@
   .selfcare{background:var(--selfcare)}
   .house{background:var(--house); color:#123}
   .medical{background:var(--medical)}
-  .learn{background:var(--learn)}   /* NEW */
-
+  .learn{background:var(--learn)}
+  
   @media (max-width:900px){
     :root{ --slotH: 44px }
     .event{font-size:13px}
@@ -127,47 +137,49 @@ const days = [
   {label:'Saturday', key:'sat'},
 ];
 
-/* helper: start/end line numbers for 30m grid */
+/* helper: convert time to grid line on 30-min grid */
 const line = (t)=> (t - 6) * 2 + 1;
 
-/* schedule */
+/* Your schedule (unchanged), with READING + SPANISH moved to mornings (7:30–8:00 daily) */
 const S = {
   sun: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    /* 7:30–8:00 split into two 15m pills */
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
     {start:8.0, end:10.0, text:'Submit paper + discussion responses', cat:'school'},
     {start:10.0,end:11.0, text:'Strength training', cat:'exercise'},
     {start:12.0,end:14.0, text:'Groceries + meal plan', cat:'house'},
     {start:14.0,end:18.0, text:'Product prep: oils/soaps/candles/incense', cat:'selfcare'},
     {start:18.0,end:20.0, text:'Photos/content/marketing + website', cat:'selfcare'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
-    /* Daily 15m Reading + 15m Spanish at 21:00–21:30 */
-    {start:21.0,end:21.5, text:'Reading 15m', cat:'school', cls:'half'},
-    {start:21.0,end:21.5, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
   ],
   mon: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:7.0, end:7.5, text:'Shower/teeth/breakfast (part 1)', cat:'exercise'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
-    {start:21.0,end:21.5, text:'Reading 15m', cat:'school', cls:'half'},
-    {start:21.0,end:21.5, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
   ],
   tue: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:7.0, end:7.5, text:'Shower/teeth/breakfast (part 1)', cat:'exercise'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
-    {start:20.5,end:21.0, text:'Reading 15m', cat:'school', cls:'half'},       /* 20:30–21:00 to avoid laundry */
-    {start:20.5,end:21.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
     {start:21.0,end:22.0, text:'Laundry', cat:'house'},
   ],
   wed: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:7.0, end:7.5, text:'Shower/teeth/breakfast (part 1)', cat:'exercise'},
     {start:8.0, end:10.0, text:'Light content/admin + tidy', cat:'selfcare'},
     {start:10.0,end:11.0, text:'Hair trim + eyebrows', cat:'selfcare'},
     {start:11.0,end:12.0, text:'Strength training', cat:'exercise'},
@@ -175,40 +187,39 @@ const S = {
     {start:16.0,end:17.0, text:'Dr. Yu follow-up 4 PM', cat:'medical'},
     {start:19.0,end:20.0, text:'Gentle yoga (20m) + meditation (10m)', cat:'exercise'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
-    {start:21.0,end:21.5, text:'Reading 15m', cat:'school', cls:'half'},
-    {start:21.0,end:21.5, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
   ],
   thu: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:7.0, end:7.5, text:'Shower/teeth/breakfast (part 1)', cat:'exercise'},
     {start:8.0, end:9.0, text:'Post MKG 580 discussion', cat:'school'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
-    {start:21.0,end:21.5, text:'Reading 15m', cat:'school', cls:'half'},
-    {start:21.0,end:21.5, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
   ],
   fri: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:7.0, end:7.5, text:'Shower/teeth/breakfast (part 1)', cat:'exercise'},
     {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
-    {start:20.5,end:21.0, text:'Reading 15m', cat:'school', cls:'half'},       /* 20:30–21:00 to avoid laundry */
-    {start:20.5,end:21.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
     {start:21.0,end:22.0, text:'Laundry', cat:'house'},
   ],
   sat: [
     {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
     {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
-    {start:7.0, end:8.0, text:'Shower/brush teeth/breakfast + light yoga', cat:'exercise'},
+    {start:7.5, end:8.0, text:'Reading 15m', cat:'school', cls:'half'},
+    {start:7.5, end:8.0, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
+    {start:7.0, end:7.5, text:'Shower/teeth/breakfast (part 1)', cat:'exercise'},
     {start:9.0, end:11.0, text:'Deep clean: sweep/mop whole house', cat:'house'},
     {start:11.0,end:12.0, text:'Strength training', cat:'exercise'},
     {start:12.0,end:14.0, text:'Errands & supply run', cat:'house'},
     {start:14.0,end:17.0, text:'Product prep', cat:'selfcare'},
     {start:17.0,end:18.0, text:'Budget (review & plan)', cat:'selfcare'},
     {start:20.0,end:21.0, text:'Dinner + wash dishes + sweep/mop', cat:'house'},
-    {start:21.0,end:21.5, text:'Reading 15m', cat:'school', cls:'half'},
-    {start:21.0,end:21.5, text:'Spanish 15m', cat:'learn',  cls:'half at-bottom'},
   ],
 };
 
