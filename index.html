@@ -9,29 +9,26 @@
     --bg:#ffffff; --grid:#e6e6e6; --text:#111; --header:#000; --header-text:#fff;
     --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE;
     --house:#7ED321; --medical:#F5A623;
-    --slotH:44px; /* height of one hour row */
+    --slotH:36px; /* height of a 30-minute row; increase if you want taller */
   }
   html,body{margin:0;background:var(--bg);color:var(--text);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 
   header{padding:16px 20px;background:#fff;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
   h1{margin:0;font-size:clamp(18px,3vw,28px)}
-
   .wrapper{max-width:1200px;margin:18px auto;padding:0 16px}
 
   .legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px}
   .legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:13px}
   .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
 
-  /* Board: left time column + 7 day columns */
+  /* Board: sticky time col + 7 day columns, each with 30-min rows */
   .board{
     display:grid;
-    grid-template-columns: 70px repeat(7, 1fr);
+    grid-template-columns: 78px repeat(7, 1fr);
     align-items:start;
     border:1px solid var(--grid);
   }
-
-  /* sticky headers */
   .timeHead,.dayHead{
     background:var(--header); color:var(--header-text);
     text-align:center; padding:8px 4px;
@@ -39,21 +36,23 @@
     border-right:1px solid #222;
   }
 
-  /* Time column: 06:00–22:00 = 17 rows */
   .timeCol{
-    display:grid; grid-template-rows: repeat(17, var(--slotH));
+    display:grid; grid-template-rows: repeat(32, var(--slotH)); /* 06:00→22:00 = 16 hours = 32 half-hours */
     position:sticky; left:0; z-index:3; background:#fafafa; border-right:1px solid var(--grid);
   }
-  .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
+  .tcell{
+    display:flex; align-items:center; justify-content:center;
+    border-top:1px solid var(--grid); color:#666; font-size:12px;
+  }
+  .tcell.half{ color:#9aa; }
 
-  /* Day column: also 17 rows so events can span */
   .dayCol{
-    display:grid; grid-template-rows: repeat(17, var(--slotH));
+    display:grid; grid-template-rows: repeat(32, var(--slotH));
     position:relative; border-right:1px solid var(--grid); background:#fff;
   }
-  .slot{ border-top:1px solid var(--grid); } /* faint hour lines */
+  .slot{ border-top:1px solid var(--grid); }
+  .slot.half{ border-top:1px dashed #efefef; }
 
-  /* Event blocks */
   .event{
     margin:2px 6px; padding:8px 10px; border-radius:8px; color:#fff; font-size:12px; line-height:1.25;
     box-shadow:0 1px 2px rgba(0,0,0,.08); display:flex; align-items:center;
@@ -66,7 +65,7 @@
   .medical{background:var(--medical)}
 
   @media (max-width:900px){
-    :root{ --slotH: 50px } /* taller rows for mobile */
+    :root{ --slotH: 44px }
     .event{font-size:13px}
   }
   @media print{
@@ -95,8 +94,11 @@
 </div>
 
 <script>
-/* ===== GRID CONFIG ===== */
-const hours = Array.from({length:17},(_,i)=> i + 6); // rows represent 06..22
+/* ===== helper ===== */
+const toLabel = (n)=> String(Math.floor(n)).padStart(2,'0') + ':' + (n%1? '30':'00');
+
+/* rows for 06:00..22:00 in 30-min steps (6.0, 6.5, ..., 21.5) => 32 rows, grid lines 1..33 */
+const rows = Array.from({length:32},(_,i)=> 6 + i*0.5);
 const days = [
   {label:'Sunday', key:'sun'},
   {label:'Monday', key:'mon'},
@@ -107,88 +109,104 @@ const days = [
   {label:'Saturday', key:'sat'},
 ];
 
-/* ===== SCHEDULE =====
-   Each event is ONE block that spans start→end.
-   Times are integers in 24h. Example: 9..20 = 9 AM–8 PM. */
+/* Each event is ONE block spanning start→end (can use .5 for :30) */
 const S = {
   sun: [
-    {start:7, end:8,  text:'AM routine: shower/teeth/breakfast + 10–15m yoga', cat:'exercise'},
-    {start:8, end:10, text:'Submit papers + discussion responses', cat:'school'},
-    {start:12, end:14, text:'Groceries + meal plan', cat:'house'},
-    {start:14, end:18, text:'Product prep: oils/soaps/candles/incense', cat:'selfcare'},
-    {start:18, end:20, text:'Photos/content + website', cat:'selfcare'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:8.0, end:10.0, text:'Submit papers + discussion responses', cat:'school'},
+    {start:10.0,end:11.0, text:'Strength training', cat:'exercise'},
+    {start:12.0,end:14.0, text:'Groceries + meal plan', cat:'house'},
+    {start:14.0,end:18.0, text:'Product prep: oils/soaps/candles/incense', cat:'selfcare'},
+    {start:18.0,end:20.0, text:'Photos/content + website', cat:'selfcare'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
   ],
   mon: [
-    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
   ],
   tue: [
-    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
-    {start:21, end:22, text:'Laundry rotation + fold', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:21.0,end:22.0, text:'Laundry rotation + fold', cat:'house'},
   ],
   wed: [
-    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
-    {start:8, end:10, text:'Light content/admin + tidy', cat:'selfcare'},
-    {start:10, end:11, text:'Hair trim + eyebrows', cat:'selfcare'},
-    {start:14, end:15, text:'Therapy (virtual) 2 PM', cat:'medical'},
-    {start:16, end:17, text:'Dr. Yu follow-up 4 PM', cat:'medical'},
-    {start:19, end:20, text:'Gentle yoga (20m) + meditation (10m)', cat:'exercise'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:8.0, end:10.0, text:'Light content/admin + tidy', cat:'selfcare'},
+    {start:10.0,end:11.0, text:'Hair trim + eyebrows', cat:'selfcare'},
+    {start:11.0,end:12.0, text:'Strength training', cat:'exercise'},
+    {start:14.0,end:15.0, text:'Therapy (virtual) 2 PM', cat:'medical'},
+    {start:16.0,end:17.0, text:'Dr. Yu follow-up 4 PM', cat:'medical'},
+    {start:19.0,end:20.0, text:'Gentle yoga (20m) + meditation (10m)', cat:'exercise'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
   ],
   thu: [
-    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
-    {start:8, end:9,  text:'Post MKG 580 discussion', cat:'school'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:8.0, end:9.0, text:'Post MKG 580 discussion', cat:'school'},
+    {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
   ],
   fri: [
-    {start:7, end:8,  text:'AM routine + 15m yoga', cat:'exercise'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
-    {start:21, end:22, text:'Laundry rotation + fold', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:9.0, end:20.0, text:'WORK 9 AM–8 PM', cat:'work'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:21.0,end:22.0, text:'Laundry rotation + fold', cat:'house'},
   ],
   sat: [
-    {start:7, end:8,  text:'AM routine + 10–15m yoga', cat:'exercise'},
-    {start:9, end:11, text:'Deep clean: sweep/mop whole house', cat:'house'},
-    {start:12, end:14, text:'Errands & supply run', cat:'house'},
-    {start:14, end:18, text:'Product prep & budgeting', cat:'selfcare'},
-    {start:20, end:21, text:'Dinner + sweep/mop + meditation', cat:'house'},
+    {start:6.0, end:6.5, text:'Journaling', cat:'selfcare'},
+    {start:6.5, end:7.0, text:'Walk 30 min', cat:'exercise'},
+    {start:7.0, end:8.0, text:'AM routine + light yoga', cat:'exercise'},
+    {start:9.0, end:11.0, text:'Deep clean: sweep/mop whole house', cat:'house'},
+    {start:11.0,end:12.0, text:'Strength training', cat:'exercise'},
+    {start:12.0,end:14.0, text:'Errands & supply run', cat:'house'},
+    {start:14.0,end:18.0, text:'Product prep & budgeting', cat:'selfcare'},
+    {start:20.0,end:21.0, text:'Dinner + sweep/mop + meditation', cat:'house'},
   ],
 };
 
-/* ===== RENDER (row-span blocks) ===== */
+/* ===== render ===== */
 const board = document.getElementById('board');
 
 /* header row */
-board.appendChild(div('timeHead','Hour'));
+board.appendChild(div('timeHead','Time'));
 days.forEach(d => board.appendChild(div('dayHead', d.label)));
 
-/* time column */
+/* time column with :00 and :30 labels */
 const timeCol = div('timeCol');
-hours.forEach(h => timeCol.appendChild(div('tcell', pad(h)+':00')));
+rows.forEach((v,i) => {
+  timeCol.appendChild(div('tcell'+(v%1? ' half':''), toLabel(v)));
+});
 board.appendChild(timeCol);
 
-/* day columns: draw faint hour lines + add events with gridRow spans */
+/* day columns */
 days.forEach(d => {
   const col = div('dayCol');
-  hours.forEach(() => col.appendChild(div('slot','')));   // hour lines
+  rows.forEach(v => col.appendChild(div('slot'+(v%1? ' half':''), '')));
   (S[d.key]||[]).forEach(ev => {
     const el = div('event ' + ev.cat, ev.text);
-    // rows numbered 1..17 correspond to 06..22 => startRow = (start-6)+1
-    const startRow = (ev.start - 6) + 1;
-    const endRow   = (ev.end   - 6) + 1;
-    el.style.gridRow = `${startRow} / ${endRow}`;
+    // grid lines: 1..33 ; start line = (start-6)*2 + 1 ; end line = (end-6)*2 + 1
+    const start = (ev.start - 6) * 2 + 1;
+    const end   = (ev.end   - 6) * 2 + 1;
+    el.style.gridRow = `${start} / ${end}`;
     col.appendChild(el);
   });
   board.appendChild(col);
 });
 
-function div(cls, text=''){ const e = document.createElement('div'); e.className = cls; e.textContent = text; return e; }
-function pad(n){ return String(n).padStart(2,'0'); }
+function div(cls, txt=''){ const e=document.createElement('div'); e.className=cls; e.textContent=txt; return e; }
 </script>
 </body>
 </html>
