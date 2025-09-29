@@ -8,10 +8,10 @@
   :root{
     --bg:#ffffff; --grid:#e6e6e6; --grid-half:#f3f3f3; --text:#111; --header:#000; --header-text:#fff;
     --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE; --house:#7ED321; --medical:#F5A623; --learn:#00B8D9;
-    --slotH:36px;       /* height of a 30-minute row */
+    --slotH:36px;       /* 30-min row height */
     --timeCol:78px;     /* left time column width */
-    --dayMin:140px;     /* NEW: minimum width per day column */
-    --stickyTop:65px;   /* sticky header offset */
+    --dayMin:160px;     /* min width per day so columns don't collapse */
+    --stickyTop:100px;  /* will be set precisely by JS below */
   }
 
   html,body{
@@ -19,23 +19,31 @@
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
     overflow-x:hidden;
   }
+
   header{padding:16px 20px;background:#fff;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
   h1{margin:0;font-size:clamp(18px,3vw,28px)}
-  .wrapper{max-width:1100px;width:min(1100px,100%);margin:18px auto;padding:0 16px}
+
+  .wrapper{
+    max-width:1100px; width:min(1100px,100%);
+    margin:18px auto; padding:0 16px;
+  }
 
   .legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px}
   .legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:13px}
   .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
 
-  /* NEW: horizontal scroller so all 7 days are always reachable */
-  .scroller{overflow:auto; max-width:100%; border:1px solid var(--grid); border-top:0; background:#fff}
+  /* Horizontal scroller ensures all 7 days are reachable; board stays centered */
+  .scroller{
+    overflow:auto; max-width:100%;
+    border:1px solid var(--grid); border-top:0; background:#fff;
+    scrollbar-gutter: stable both-edges;
+  }
 
-  /* Board uses a min-width so columns don't squish; stays centered via scroller */
   .board{
     display:grid;
     grid-template-columns: var(--timeCol) repeat(7, minmax(var(--dayMin), 1fr));
     align-items:start;
-    min-width: calc(var(--timeCol) + 7 * var(--dayMin)); /* key fix */
+    min-width: calc(var(--timeCol) + 7 * var(--dayMin)); /* key: don't squish days */
     box-sizing:border-box;
   }
 
@@ -54,7 +62,7 @@
   .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
   .tcell.half{ color:#9aa; border-top:1px dashed var(--grid-half); }
 
-  /* Day columns (32 rows). Hour/half-hour lines drawn with background. */
+  /* Day columns (32 rows). Hour & half-hour lines via background. */
   .dayCol{
     display:grid; grid-template-rows: repeat(32, var(--slotH));
     position:relative; border-right:1px solid var(--grid); background:#fff;
@@ -87,7 +95,7 @@
   .medical{background:var(--medical)} .learn{background:var(--learn)}
 
   @media (max-width:900px){
-    :root{ --slotH:44px; --dayMin:160px }  /* a bit wider per day on small screens for readability */
+    :root{ --slotH:44px; }
     .event{font-size:13px}
   }
   @media print{
@@ -103,7 +111,7 @@
 </header>
 
 <div class="wrapper">
-  <div class="legend">
+  <div class="legend" id="legend">
     <span><i class="sw" style="background:var(--work)"></i> Work</span>
     <span><i class="sw" style="background:var(--school)"></i> School</span>
     <span><i class="sw" style="background:var(--exercise)"></i> Exercise</span>
@@ -113,14 +121,23 @@
     <span><i class="sw" style="background:var(--learn)"></i> Spanish / Language</span>
   </div>
 
-  <!-- NEW: scroller ensures all 7 days are visible; board stays centered -->
   <div class="scroller">
     <div id="board" class="board"></div>
   </div>
 </div>
 
 <script>
-/* grid rows for 06:00..22:00 in 30-minute steps */
+/* ===== dynamic sticky offset (prevents header from covering 06:00 row) ===== */
+function setStickyTop(){
+  const header = document.querySelector('header');
+  const legend = document.getElementById('legend');
+  const top = (header?.offsetHeight || 0) + (legend?.offsetHeight || 0) + 8; // +8px breathing room
+  document.documentElement.style.setProperty('--stickyTop', top + 'px');
+}
+window.addEventListener('load', setStickyTop);
+window.addEventListener('resize', setStickyTop);
+
+/* ===== 30-minute rows for 06:00..22:00 ===== */
 const rows = Array.from({length:32},(_,i)=> 6 + i*0.5);
 const toLabel = n => String(Math.floor(n)).padStart(2,'0') + ':' + (n%1? '30':'00');
 
@@ -134,9 +151,9 @@ const days = [
   {label:'Saturday', key:'sat'},
 ];
 
-const line = t => (t - 6) * 2 + 1; // convert time to CSS grid line
+const line = t => (t - 6) * 2 + 1; // convert time to grid line
 
-/* Your schedule (includes 7:30–8:00 split Reading + Spanish daily) */
+/* Your schedule (Reading + Spanish 7:30–8:00 daily) */
 const S = {
   sun: [
     {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
@@ -220,13 +237,14 @@ const S = {
 
 const board = document.getElementById('board');
 
-/* header */
+/* header row */
 board.appendChild(div('timeHead','Time'));
 days.forEach(d => board.appendChild(div('dayHead', d.label)));
 
 /* time column */
+const rows30 = Array.from({length:32},(_,i)=> 6 + i*0.5);
 const timeCol = div('timeCol');
-rows.forEach(v => timeCol.appendChild(div('tcell'+(v%1?' half':''), toLabel(v))));
+rows30.forEach(v => timeCol.appendChild(div('tcell'+(v%1?' half':''), toLabel(v))));
 board.appendChild(timeCol);
 
 /* day columns */
