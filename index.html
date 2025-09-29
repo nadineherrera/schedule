@@ -8,10 +8,9 @@
   :root{
     --bg:#ffffff; --grid:#e6e6e6; --grid-half:#f3f3f3; --text:#111; --header:#000; --header-text:#fff;
     --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE; --house:#7ED321; --medical:#F5A623; --learn:#00B8D9;
-    --slotH:36px;       /* 30-min row height */
-    --timeCol:78px;     /* left time column width */
-    --dayMin:160px;     /* min width per day so columns don't collapse */
-    --stickyTop:100px;  /* will be set precisely by JS below */
+    --slotH:28px;          /* 15-minute row height (smaller to keep page compact) */
+    --timeCol:78px;        /* left time column width */
+    --dayMin:160px;        /* minimum width per day column */
   }
 
   html,body{
@@ -23,61 +22,58 @@
   header{padding:16px 20px;background:#fff;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
   h1{margin:0;font-size:clamp(18px,3vw,28px)}
 
-  .wrapper{
-    max-width:1100px; width:min(1100px,100%);
-    margin:18px auto; padding:0 16px;
-  }
+  .wrapper{max-width:1100px;width:min(1100px,100%);margin:18px auto;padding:0 16px}
 
   .legend{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px}
   .legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:13px}
   .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
 
-  /* Horizontal scroller ensures all 7 days are reachable; board stays centered */
-  .scroller{
-    overflow:auto; max-width:100%;
-    border:1px solid var(--grid); border-top:0; background:#fff;
-    scrollbar-gutter: stable both-edges;
-  }
+  /* Horizontal scroller keeps the board centered; shows all 7 days on small screens */
+  .scroller{overflow:auto; max-width:100%; border:1px solid var(--grid); border-top:0; background:#fff; scrollbar-gutter:stable both-edges}
 
+  /* Board: left time col + 7 day cols, with a min content width */
   .board{
     display:grid;
     grid-template-columns: var(--timeCol) repeat(7, minmax(var(--dayMin), 1fr));
     align-items:start;
-    min-width: calc(var(--timeCol) + 7 * var(--dayMin)); /* key: don't squish days */
+    min-width: calc(var(--timeCol) + 7 * var(--dayMin));
     box-sizing:border-box;
   }
 
+  /* Sticky header row — sticks to top INSIDE the scroller so it won’t cover rows */
   .timeHead,.dayHead{
     background:var(--header); color:var(--header-text);
     text-align:center; padding:8px 4px;
-    position:sticky; top:var(--stickyTop); z-index:4;
+    position:sticky; top:0; z-index:4;
     border-right:1px solid #222;
   }
 
-  /* Time column: 06:00→22:00 in 30-min steps (32 rows) */
+  /* Time column: 06:00→22:00 in 15-minute steps (64 rows) */
   .timeCol{
-    display:grid; grid-template-rows: repeat(32, var(--slotH));
+    display:grid; grid-template-rows: repeat(64, var(--slotH));
     position:sticky; left:0; z-index:3; background:#fafafa; border-right:1px solid var(--grid);
   }
   .tcell{display:flex;align-items:center;justify-content:center;border-top:1px solid var(--grid);color:#666;font-size:12px}
-  .tcell.half{ color:#9aa; border-top:1px dashed var(--grid-half); }
+  .tcell.quarter{ color:#9aa; border-top:1px dashed var(--grid-half); }
 
-  /* Day columns (32 rows). Hour & half-hour lines via background. */
+  /* Day columns (64 rows). Hour/half/quarter lines via background */
   .dayCol{
-    display:grid; grid-template-rows: repeat(32, var(--slotH));
+    display:grid; grid-template-rows: repeat(64, var(--slotH));
     position:relative; border-right:1px solid var(--grid); background:#fff;
     background-image:
+      /* hour line every 4 rows */
+      repeating-linear-gradient(to bottom,
+        transparent 0,
+        transparent calc(var(--slotH) * 4 - 1px),
+        var(--grid) calc(var(--slotH) * 4 - 1px),
+        var(--grid) calc(var(--slotH) * 4)
+      ),
+      /* half-hour line every 2 rows */
       repeating-linear-gradient(to bottom,
         transparent 0,
         transparent calc(var(--slotH) * 2 - 1px),
-        var(--grid) calc(var(--slotH) * 2 - 1px),
-        var(--grid) calc(var(--slotH) * 2)
-      ),
-      repeating-linear-gradient(to bottom,
-        transparent 0,
-        transparent calc(var(--slotH) - 1px),
-        var(--grid-half) calc(var(--slotH) - 1px),
-        var(--grid-half) var(--slotH)
+        var(--grid-half) calc(var(--slotH) * 2 - 1px),
+        var(--grid-half) calc(var(--slotH) * 2)
       );
     background-repeat:no-repeat;
   }
@@ -87,15 +83,12 @@
     margin:2px 6px; padding:8px 10px; border-radius:8px; color:#fff; font-size:12px; line-height:1.25;
     box-shadow:0 1px 2px rgba(0,0,0,.08); display:flex; align-items:center;
   }
-  .event.half{ height: calc(var(--slotH)/2 - 6px); } /* 15-min pill */
-  .event.at-bottom{ align-self:end; }
-
   .work{background:var(--work)} .school{background:var(--school)} .exercise{background:var(--exercise); color:#063}
   .selfcare{background:var(--selfcare)} .house{background:var(--house); color:#123}
   .medical{background:var(--medical)} .learn{background:var(--learn)}
 
   @media (max-width:900px){
-    :root{ --slotH:44px; }
+    :root{ --slotH:32px; }  /* slightly taller rows for readability */
     .event{font-size:13px}
   }
   @media print{
@@ -111,7 +104,7 @@
 </header>
 
 <div class="wrapper">
-  <div class="legend" id="legend">
+  <div class="legend">
     <span><i class="sw" style="background:var(--work)"></i> Work</span>
     <span><i class="sw" style="background:var(--school)"></i> School</span>
     <span><i class="sw" style="background:var(--exercise)"></i> Exercise</span>
@@ -127,19 +120,13 @@
 </div>
 
 <script>
-/* ===== dynamic sticky offset (prevents header from covering 06:00 row) ===== */
-function setStickyTop(){
-  const header = document.querySelector('header');
-  const legend = document.getElementById('legend');
-  const top = (header?.offsetHeight || 0) + (legend?.offsetHeight || 0) + 8; // +8px breathing room
-  document.documentElement.style.setProperty('--stickyTop', top + 'px');
-}
-window.addEventListener('load', setStickyTop);
-window.addEventListener('resize', setStickyTop);
-
-/* ===== 30-minute rows for 06:00..22:00 ===== */
-const rows = Array.from({length:32},(_,i)=> 6 + i*0.5);
-const toLabel = n => String(Math.floor(n)).padStart(2,'0') + ':' + (n%1? '30':'00');
+/* ===== 15-minute rows for 06:00..22:00 ===== */
+const rows = Array.from({length:64},(_,i)=> 6 + i*0.25);   // 6:00 → 22:00 in 15m
+const toLabel = n => {
+  const h = String(Math.floor(n)).padStart(2,'0');
+  const m = Math.round((n%1)*60).toString().padStart(2,'0');
+  return `${h}:${m}`;
+};
 
 const days = [
   {label:'Sunday', key:'sun'},
@@ -151,15 +138,16 @@ const days = [
   {label:'Saturday', key:'sat'},
 ];
 
-const line = t => (t - 6) * 2 + 1; // convert time to grid line
+/* helper: convert time (e.g., 7.75 for 7:45) to grid line on 15m grid */
+const line = t => (t - 6) * 4 + 1;
 
-/* Your schedule (Reading + Spanish 7:30–8:00 daily) */
+/* Your schedule — Reading 7:30–7:45 (7.5→7.75) + Spanish 7:45–8:00 (7.75→8.0) daily */
 const S = {
   sun: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:8.0,end:10.0,text:'Submit paper + discussion responses',cat:'school'},
     {start:10.0,end:11.0,text:'Strength training',cat:'exercise'},
     {start:12.0,end:14.0,text:'Groceries + meal plan',cat:'house'},
@@ -168,29 +156,29 @@ const S = {
     {start:20.0,end:21.0,text:'Dinner + wash dishes + sweep/mop',cat:'house'},
   ],
   mon: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:7.0,end:7.5,text:'Shower/teeth/breakfast (part 1)',cat:'exercise'},
     {start:9.0,end:20.0,text:'WORK 9 AM–8 PM',cat:'work'},
     {start:20.0,end:21.0,text:'Dinner + wash dishes + sweep/mop',cat:'house'},
   ],
   tue: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:7.0,end:7.5,text:'Shower/teeth/breakfast (part 1)',cat:'exercise'},
     {start:9.0,end:20.0,text:'WORK 9 AM–8 PM',cat:'work'},
     {start:20.0,end:21.0,text:'Dinner + wash dishes + sweep/mop',cat:'house'},
     {start:21.0,end:22.0,text:'Laundry',cat:'house'},
   ],
   wed: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:7.0,end:7.5,text:'Shower/teeth/breakfast (part 1)',cat:'exercise'},
     {start:8.0,end:10.0,text:'Light content/admin + tidy',cat:'selfcare'},
     {start:10.0,end:11.0,text:'Hair trim + eyebrows',cat:'selfcare'},
@@ -201,30 +189,30 @@ const S = {
     {start:20.0,end:21.0,text:'Dinner + wash dishes + sweep/mop',cat:'house'},
   ],
   thu: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:7.0,end:7.5,text:'Shower/teeth/breakfast (part 1)',cat:'exercise'},
     {start:8.0,end:9.0,text:'Post MKG 580 discussion',cat:'school'},
     {start:9.0,end:20.0,text:'WORK 9 AM–8 PM',cat:'work'},
     {start:20.0,end:21.0,text:'Dinner + wash dishes + sweep/mop',cat:'house'},
   ],
   fri: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:7.0,end:7.5,text:'Shower/teeth/breakfast (part 1)',cat:'exercise'},
     {start:9.0,end:20.0,text:'WORK 9 AM–8 PM',cat:'work'},
     {start:20.0,end:21.0,text:'Dinner + wash dishes + sweep/mop',cat:'house'},
     {start:21.0,end:22.0,text:'Laundry',cat:'house'},
   ],
   sat: [
-    {start:6.0,end:6.5,text:'Journaling',cat:'selfcare'},
-    {start:6.5,end:7.0,text:'Walk 30 min',cat:'exercise'},
-    {start:7.5,end:8.0,text:'Reading 15m',cat:'school',cls:'half'},
-    {start:7.5,end:8.0,text:'Spanish 15m',cat:'learn',cls:'half at-bottom'},
+    {start:6.0,end:6.25,text:'Journaling',cat:'selfcare'},
+    {start:6.25,end:6.5,text:'Walk 30 min',cat:'exercise'},
+    {start:7.5,end:7.75,text:'Reading 15m',cat:'school'},
+    {start:7.75,end:8.0,text:'Spanish 15m',cat:'learn'},
     {start:7.0,end:7.5,text:'Shower/teeth/breakfast (part 1)',cat:'exercise'},
     {start:9.0,end:11.0,text:'Deep clean: sweep/mop whole house',cat:'house'},
     {start:11.0,end:12.0,text:'Strength training',cat:'exercise'},
@@ -241,17 +229,21 @@ const board = document.getElementById('board');
 board.appendChild(div('timeHead','Time'));
 days.forEach(d => board.appendChild(div('dayHead', d.label)));
 
-/* time column */
-const rows30 = Array.from({length:32},(_,i)=> 6 + i*0.5);
+/* time column (labels every 15m; hours bold on whole hour) */
 const timeCol = div('timeCol');
-rows30.forEach(v => timeCol.appendChild(div('tcell'+(v%1?' half':''), toLabel(v))));
+rows.forEach(v => {
+  const mm = Math.round((v%1)*60);
+  const label = toLabel(v);
+  const cell = div('tcell' + (mm ? ' quarter' : ''), mm ? '' : label);
+  timeCol.appendChild(cell);
+});
 board.appendChild(timeCol);
 
 /* day columns */
 days.forEach(d => {
   const col = div('dayCol');
   (S[d.key]||[]).forEach(ev => {
-    const el = div('event ' + ev.cat + (ev.cls?(' '+ev.cls):''), ev.text);
+    const el = div('event ' + ev.cat, ev.text);
     el.style.gridRow = `${line(ev.start)} / ${line(ev.end)}`;
     col.appendChild(el);
   });
