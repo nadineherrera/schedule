@@ -43,7 +43,7 @@
 <body>
   <header>
     <h1>Weekly Schedule • Sept 28 – Oct 4, 2025 (ET)</h1>
-    <div class="sub"></div>
+    <div class="sub">Work 9 AM–8 PM (Mon/Tue/Thu/Fri). Therapy (virtual) Wed 2 PM. Dr. Yu Wed 4 PM. Hair + eyebrows Wed 10–11 AM. Includes daily routines, yoga, meditation, chores.</div>
   </header>
 
   <div class="wrapper">
@@ -58,18 +58,22 @@
 
     <div id="grid" class="schedule"></div>
 
+    <div class="notes">
+      <strong>Tip:</strong> To change any item, edit the <code>schedule</code> data in the HTML (near the bottom). Times are 24-hour integers (e.g., 7–8 = 7:00–8:00). You can print this page or “Add to Home Screen” on iPhone for a quick mobile planner.
+    </div>
+  </div>
 
 <script>
 // ---- Config ----
 const hours = Array.from({length: (22 - 6 + 1)}, (_,i)=> i + 6); // 06:00..22:00
 const days = [
-  {label:'Sunday', key:'sun'},
-  {label:'Monday', key:'mon'},
-  {label:'Tuesday', key:'tue'},
-  {label:'Wednesday', key:'wed'},
-  {label:'Thursday', key:'thu'},
-  {label:'Friday', key:'fri'},
-  {label:'Saturday', key:'sat'},
+  {label:'Sunday 09/28', key:'sun'},
+  {label:'Monday 09/29', key:'mon'},
+  {label:'Tuesday 09/30', key:'tue'},
+  {label:'Wednesday 10/01', key:'wed'},
+  {label:'Thursday 10/02', key:'thu'},
+  {label:'Friday 10/03', key:'fri'},
+  {label:'Saturday 10/04', key:'sat'},
 ];
 
 // category -> CSS class
