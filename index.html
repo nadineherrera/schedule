@@ -9,148 +9,113 @@
     --bg:#ffffff; --grid:#e6e6e6; --text:#111; --header:#000; --header-text:#fff;
     --work:#FF6B6B; --school:#4A90E2; --exercise:#50E3C2; --selfcare:#9013FE;
     --house:#7ED321; --medical:#F5A623;
+    --slotH:44px; /* row height */
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
   header{padding:16px 20px;background:#fff;position:sticky;top:0;z-index:3;border-bottom:1px solid var(--grid)}
   h1{margin:0;font-size:clamp(18px,3vw,28px);}
-  .sub{margin-top:6px;color:#444;font-size:14px}
   .wrapper{max-width:1200px;margin:20px auto;padding:0 16px}
   .legend{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 20px}
   .legend span{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:6px 10px;border:1px solid var(--grid);border-radius:999px;background:#fff}
   .swatch{width:14px;height:14px;border-radius:3px;display:inline-block}
-  .schedule{display:grid;grid-template-columns: 70px repeat(7, 1fr);border:1px solid var(--grid);border-top:0}
-  .cell{border-top:1px solid var(--grid);border-left:1px solid var(--grid);min-height:42px;padding:6px;overflow-wrap:anywhere}
-  .cell.header{background:var(--header);color:var(--header-text);text-align:center;position:sticky;top:65px;z-index:2}
-  .time{background:#fafafa;position:sticky;left:0;z-index:1;text-align:center;color:#555}
-  .event{border-radius:6px;color:#fff;padding:6px 8px;font-size:12px;line-height:1.25;margin:2px 0}
+
+  .board{
+    display:grid;
+    grid-template-columns:70px repeat(7,1fr);
+    border:1px solid var(--grid);
+  }
+  .timeHead,.dayHead{
+    background:var(--header);color:var(--header-text);
+    text-align:center;padding:8px 4px;position:sticky;top:65px;z-index:4;
+  }
+  .timeCol{
+    display:grid;grid-template-rows:repeat(17,var(--slotH));
+    background:#fafafa;position:sticky;left:0;z-index:2;
+  }
+  .tcell{display:flex;align-items:center;justify-content:center;
+    border-top:1px solid var(--grid);color:#666;font-size:12px}
+
+  .dayCol{
+    display:grid;grid-template-rows:repeat(17,var(--slotH));
+    border-left:1px solid var(--grid);position:relative;
+  }
+  .slot{border-top:1px solid var(--grid)}
+
+  .event{
+    margin:2px 4px;padding:6px 8px;border-radius:6px;color:#fff;font-size:12px;
+    line-height:1.25;box-shadow:0 1px 2px rgba(0,0,0,.1);display:flex;align-items:center;
+  }
   .work{background:var(--work)}
   .school{background:var(--school)}
   .exercise{background:var(--exercise);color:#063}
   .selfcare{background:var(--selfcare)}
   .house{background:var(--house);color:#123}
   .medical{background:var(--medical)}
-  .notes{margin:20px 0;color:#333;font-size:14px}
-  @media print{
-    header{position:static;border:0}
-    .cell.header{top:auto}
-    .wrapper{margin:0;padding:0}
-    .legend{gap:6px}
-    .event{font-size:11px}
-  }
 </style>
 </head>
 <body>
-  <header>
-    <h1>Weekly Schedule • Sept 28 – Oct 4, 2025 (ET)</h1>
-    <div class="sub"></div>
-  </header>
+<header>
+  <h1>Weekly Schedule • Sept 28 – Oct 4, 2025 (ET)</h1>
+</header>
 
-  <div class="wrapper">
-    <div class="legend">
-      <span><i class="swatch" style="background:var(--work)"></i> Work</span>
-      <span><i class="swatch" style="background:var(--school)"></i> School</span>
-      <span><i class="swatch" style="background:var(--exercise)"></i> Exercise</span>
-      <span><i class="swatch" style="background:var(--selfcare)"></i> Self-care & Business</span>
-      <span><i class="swatch" style="background:var(--house)"></i> Household</span>
-      <span><i class="swatch" style="background:var(--medical)"></i> Medical</span>
-    </div>
+<div class="wrapper">
+  <div class="legend">
+    <span><i class="swatch" style="background:var(--work)"></i> Work</span>
+    <span><i class="swatch" style="background:var(--school)"></i> School</span>
+    <span><i class="swatch" style="background:var(--exercise)"></i> Exercise</span>
+    <span><i class="swatch" style="background:var(--selfcare)"></i> Self-care</span>
+    <span><i class="swatch" style="background:var(--house)"></i> Household</span>
+    <span><i class="swatch" style="background:var(--medical)"></i> Medical</span>
+  </div>
 
-    <div id="grid" class="schedule"></div>
-
+  <div id="board" class="board"></div>
+</div>
 
 <script>
-// ---- Config ----
-const hours = Array.from({length: (22 - 6 + 1)}, (_,i)=> i + 6); // 06:00..22:00
+const hours = Array.from({length:17},(_,i)=>i+6); // 6–22
 const days = [
-  {label:'Sunday', key:'sun'},
-  {label:'Monday', key:'mon'},
-  {label:'Tuesday', key:'tue'},
-  {label:'Wednesday', key:'wed'},
-  {label:'Thursday', key:'thu'},
-  {label:'Friday', key:'fri'},
-  {label:'Saturday', key:'sat'},
+  {label:'Sunday',key:'sun'},
+  {label:'Monday',key:'mon'},
+  {label:'Tuesday',key:'tue'},
+  {label:'Wednesday',key:'wed'},
+  {label:'Thursday',key:'thu'},
+  {label:'Friday',key:'fri'},
+  {label:'Saturday',key:'sat'},
 ];
 
-// category -> CSS class
-const catClass = { Work:'work', School:'school', Exercise:'exercise', SelfCare:'selfcare', House:'house', Medical:'medical' };
-
-// ---- Your schedule data ----
-// Each event: {start:hourInt, end:hourInt, text:'', cat:'Work|School|Exercise|SelfCare|House|Medical'}
+// schedule: events span rows (start→end)
 const schedule = {
-  sun: [
-    {start:8, end:10, text:'Submit papers + discussion responses', cat:'School'},
-    {start:12, end:14, text:'Groceries + meal plan', cat:'House'},
-    {start:14, end:18, text:'Product prep: oils/soaps/candles/incense', cat:'SelfCare'},
-    {start:18, end:20, text:'Photos/content + website', cat:'SelfCare'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'},
-    {start:7, end:8, text:'AM routine: shower/teeth/breakfast + 10–15m yoga/stretch', cat:'Exercise'}
-  ],
-  mon: [
-    {start:7, end:8, text:'AM routine + 10–15m yoga/stretch', cat:'Exercise'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'Work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'}
-  ],
-  tue: [
-    {start:7, end:8, text:'AM routine + 10–15m yoga/stretch', cat:'Exercise'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'Work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'},
-    {start:21, end:22, text:'Laundry rotation + fold', cat:'House'}
-  ],
-  wed: [
-    {start:8, end:10, text:'Light content/admin + tidy', cat:'SelfCare'},
-    {start:10, end:11, text:'Hair trim + eyebrows', cat:'SelfCare'},
-    {start:14, end:15, text:'Therapy (virtual) 2 PM', cat:'Medical'},
-    {start:16, end:17, text:'Dr. Yu follow-up 4 PM', cat:'Medical'},
-    {start:19, end:20, text:'Gentle yoga/stretch (20m) + meditation (10m)', cat:'Exercise'},
-    {start:7, end:8, text:'AM routine: shower/teeth/breakfast + 10–15m yoga/stretch', cat:'Exercise'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'}
-  ],
-  thu: [
-    {start:8, end:9, text:'Post MKG 580 discussion', cat:'School'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'Work'},
-    {start:7, end:8, text:'AM routine + 10–15m yoga/stretch', cat:'Exercise'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'}
-  ],
-  fri: [
-    {start:7, end:8, text:'AM routine + 15m yoga', cat:'Exercise'},
-    {start:9, end:20, text:'WORK 9 AM–8 PM', cat:'Work'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'},
-    {start:21, end:22, text:'Laundry rotation + fold', cat:'House'}
-  ],
-  sat: [
-    {start:9, end:11, text:'Deep clean: sweep/mop whole house', cat:'House'},
-    {start:12, end:14, text:'Errands & supply run', cat:'House'},
-    {start:14, end:18, text:'Product prep & budgeting', cat:'SelfCare'},
-    {start:7, end:8, text:'AM routine + 10–15m yoga/stretch', cat:'Exercise'},
-    {start:20, end:21, text:'Dinner + sweep/mop + 10–15m meditation', cat:'House'}
-  ]
+  mon:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
+  tue:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
+  thu:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
+  fri:[{start:9,end:20,text:'WORK 9–8',cat:'work'}],
 };
 
-// ---- Render grid ----
-const grid = document.getElementById('grid');
+const board=document.getElementById('board');
 
-// Header row
-grid.appendChild(cell('Hour', 'cell header time'));
-for(const d of days){ grid.appendChild(cell(d.label, 'cell header')); }
+// header row
+board.appendChild(div('timeHead','Hour'));
+days.forEach(d=>board.appendChild(div('dayHead',d.label)));
 
-// Body rows
-for(const h of hours){
-  grid.appendChild(cell(pad(h)+':00', 'cell time'));
-  for(const d of days){
-    const container = document.createElement('div');
-    container.className = 'cell';
-    const items = (schedule[d.key]||[]).filter(e => h >= e.start && h < e.end);
-    items.forEach(e => {
-      const ev = document.createElement('div');
-      ev.className = 'event ' + (catClass[e.cat]||'');
-      ev.textContent = e.text;
-      container.appendChild(ev);
-    });
-    grid.appendChild(container);
-  }
-}
-function cell(text, cls){ const el = document.createElement('div'); el.className = cls; el.textContent = text; return el; }
+// time col
+const tc=div('timeCol');
+hours.forEach(h=>tc.appendChild(div('tcell',pad(h)+':00')));
+board.appendChild(tc);
+
+// day cols
+days.forEach(d=>{
+  const col=div('dayCol');
+  hours.forEach(()=>col.appendChild(div('slot','')));
+  (schedule[d.key]||[]).forEach(ev=>{
+    const el=div('event '+ev.cat,ev.text);
+    el.style.gridRow=`${ev.start-5} / ${ev.end-5}`; // row span
+    col.appendChild(el);
+  });
+  board.appendChild(col);
+});
+
+function div(cls,txt=''){const e=document.createElement('div');e.className=cls;e.textContent=txt;return e;}
 function pad(n){return String(n).padStart(2,'0');}
 </script>
 </body>
