@@ -1,1 +1,29 @@
+{
+  "id": "weekly-schedule",
+  "lang": "en",
+  "name": "Weekly Schedule",
+  "short_name": "Schedule",
+  "description": "A clean weekly schedule board with color-coded events.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://cdn.shopify.com/s/files/1/0674/0898/6349/files/android-chrome-192x192_95e3c471-f36f-4fa8-a852-4c14428822dd.png?v=1759916628",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.shopify.com/s/files/1/0674/0898/6349/files/android-chrome-512x512_a71ea623-f740-4215-b3a8-9c84b37476bf.png?v=1759916629",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}
 
